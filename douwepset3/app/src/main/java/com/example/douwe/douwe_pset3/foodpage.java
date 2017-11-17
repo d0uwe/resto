@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class foodpage extends AppCompatActivity {
-
+    JSONObject foodItem;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // todo: async task
@@ -39,7 +39,7 @@ public class foodpage extends AppCompatActivity {
         String retrievied_string = getIntent().getExtras().getString("entry");
 
         try{
-            JSONObject foodItem = new JSONObject(retrievied_string);
+            foodItem = new JSONObject(retrievied_string);
             TextView view1 = (TextView) findViewById(R.id.textView2);
             view1.setText(foodItem.getString("name"));
             view1 = (TextView) findViewById(R.id.textView3);
@@ -47,8 +47,27 @@ public class foodpage extends AppCompatActivity {
             String url = foodItem.getString("image_url");
             System.out.println("this url though: " + url);
 
+            Button butt = (Button) findViewById(R.id.button);
+            butt.setText(butt.getText() + " for: " + Integer.toString(foodItem.getInt("price")));
+
             ImageView viewer = (ImageView) findViewById(R.id.imageView2);
             viewer.setImageBitmap(drawable_from_url(url));
+
+            SharedPreferences getter = getSharedPreferences("filename", MODE_PRIVATE);
+            String teststring = getter.getString("name", "");
+            butt = (Button) findViewById(R.id.button5);
+            butt.setVisibility(View.INVISIBLE);
+            if(teststring.contains(foodItem.getString("name"))) {
+                butt = (Button) findViewById(R.id.button5);
+                butt.setVisibility(View.VISIBLE);
+                butt.setOnClickListener(new HandleClick3());
+            } else {
+                butt = (Button) findViewById(R.id.button5);
+                butt.setVisibility(View.INVISIBLE);
+            }
+
+
+
 
         } catch (Exception e) {
             System.out.println("error2: " + e.toString());
@@ -73,6 +92,7 @@ public class foodpage extends AppCompatActivity {
     private class HandleClick2 implements View.OnClickListener {
         public void onClick(View view) {
             SharedPreferences getter = getSharedPreferences("filename", MODE_PRIVATE);
+            int totalPrice = getter.getInt("price", 0);
             String teststring = getter.getString("name", "");
             ArrayList<String> myList = new ArrayList<String>(Arrays.asList(teststring.split("`")));
 
@@ -96,6 +116,50 @@ public class foodpage extends AppCompatActivity {
             SharedPreferences prefs = getSharedPreferences("filename", MODE_PRIVATE);
             SharedPreferences.Editor prefsEditor = prefs.edit();
             prefsEditor.putString("name", newString);
+            try{
+                prefsEditor.putInt("price", totalPrice + foodItem.getInt("price"));
+            } catch (Exception e) {
+                prefsEditor.putInt("price", totalPrice);
+
+            }
+            prefsEditor.apply();
+            prefsEditor.commit();
+        }
+    }
+
+    private class HandleClick3 implements View.OnClickListener {
+        public void onClick(View view) {
+            SharedPreferences getter = getSharedPreferences("filename", MODE_PRIVATE);
+            int totalPrice = getter.getInt("price", 0);
+            String teststring = getter.getString("name", "");
+            ArrayList<String> myList = new ArrayList<String>(Arrays.asList(teststring.split("`")));
+
+            // contains title of dish
+            TextView viewer = findViewById(R.id.textView2);
+            String new_dish = viewer.getText().toString() + "\n";
+            String newString = "";
+            boolean found = false;
+            for(int i = 1; i < myList.size(); i+=2){
+                System.out.println("found dish: " + myList.get(i) + " new dish: " + new_dish);
+                if (myList.get(i).equals(new_dish)) {
+                    found = true;
+                    if(!(Integer.parseInt(myList.get(i -1)) == 1)){
+                        newString = newString + Integer.toString(Integer.parseInt(myList.get(i -1)) - 1)  + "`" + myList.get(i) + "`";
+                    }
+                }
+            }
+
+            SharedPreferences prefs = getSharedPreferences("filename", MODE_PRIVATE);
+            SharedPreferences.Editor prefsEditor = prefs.edit();
+            prefsEditor.putString("name", newString);
+            try{
+                if(found){
+                    prefsEditor.putInt("price", totalPrice - foodItem.getInt("price"));
+                }
+            } catch (Exception e) {
+                prefsEditor.putInt("price", totalPrice);
+
+            }
             prefsEditor.apply();
             prefsEditor.commit();
         }

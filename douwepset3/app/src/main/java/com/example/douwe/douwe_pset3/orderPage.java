@@ -27,12 +27,15 @@ public class orderPage extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_order_page);
         findViewById(R.id.button3).setOnClickListener(new HandleClick());
+        findViewById(R.id.button4).setOnClickListener(new HandleClick2());
+
 
         try {
             TextView textViewer = (TextView) findViewById(R.id.textView4);
 
             SharedPreferences prefs = getSharedPreferences("filename", MODE_PRIVATE);
             String teststring = prefs.getString("name", "Nothing on order yet, go get some.");
+            int TotalPrice = prefs.getInt("price", 0);
 
 
             textViewer.setText(teststring.replace('`',' '));
@@ -43,6 +46,7 @@ public class orderPage extends AppCompatActivity {
             // can't order when there are no products.
             if(myList.size() > 1) {
                 Button butt = (Button) findViewById(R.id.button3);
+                butt.setText(butt.getText() + " for " + Integer.toString(TotalPrice));
                 butt.setVisibility(View.VISIBLE);
             } else {
                 Button butt = (Button) findViewById(R.id.button3);
@@ -69,6 +73,20 @@ public class orderPage extends AppCompatActivity {
             prefsEditor.commit();
             TextView confirm = (TextView) findViewById(R.id.textView5);
             confirm.setText("Order has been placed.");
+        }
+    }
+
+    private class HandleClick2 implements View.OnClickListener {
+        public void onClick(View arg0) {
+            SharedPreferences prefs = getSharedPreferences("filename", MODE_PRIVATE);
+            SharedPreferences.Editor prefsEditor = prefs.edit();
+            prefsEditor.remove("name");
+            prefsEditor.apply();
+            prefsEditor.commit();
+            TextView confirm = (TextView) findViewById(R.id.textView5);
+            Button butt = (Button) findViewById(R.id.button3);
+            butt.setVisibility(View.INVISIBLE);
+            confirm.setText("Order has been removed.");
         }
     }
 
